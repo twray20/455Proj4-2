@@ -38,7 +38,7 @@ class AddrSpace {
 
    	NoffHeader noffH;
 	int pAddr;
-	OpenFile *exec;
+	//OpenFile *exec;
 	char* fileName;
 	int size;
 	

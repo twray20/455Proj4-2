@@ -20,6 +20,12 @@
 #include "addrspace.h"
 #include "noff.h"
 
+struct IPTEntry{
+	Thread* threadptr;
+	int vPage;
+};
+IPTEntry* IPT = new IPTEntry[31];
+
 //----------------------------------------------------------------------
 // SwapHeader
 // 	Do little endian to big endian conversion on the bytes in the 
@@ -258,13 +264,26 @@ void AddrSpace::RestoreState()
 
 
 
-//begin code changes by Thomas Wray
-void AddrSpace::InitPages(int VAddr, int PAddr){
+//begin code changes by Thomas Wray and Hayden Presley
+void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
 	OpenFile * exec = fileSystem->Open(fileName);
+
+	if (replaced){
+		Thread* threadToSwap = IPT[PAddr].threadptr;
+		char* swapFileName = new char[10];
+		sprintf(swapFileName, "%d.swap", threadToSwap->getID());
+		OpenFile* swapFile = fileSystem->Open(swapFileName);
+		swapFile->WriteAt(machine->mainMemory + PAddr * PageSize, PageSize, threadToSwap->Space.noffH.code.inFileAddr + VAddr * PageSize);
+		delete swapFile;
+		delete swapFileName;
+	}
 
 	memset(machine->mainMemory + PAddr * PageSize, 0, PageSize);
 
 	pageTable[VAddr].physicalPage = PAddr;
+
+	IPT[PAddr].threadptr = currentThread;
+	IPT[PAddr].vPage = VAddr;
 
     if (noffH.code.size > 0 && VAddr * PageSize >= 0 
 	&& noffH.code.size + noffH.initData.size > VAddr * PageSize) {													
@@ -275,7 +294,6 @@ void AddrSpace::InitPages(int VAddr, int PAddr){
 	printf("Init pages: address is %d and %d\n", VAddr, PAddr);
 
 	delete exec;
-	
 }
 //end code changes by Thomas Wray
 

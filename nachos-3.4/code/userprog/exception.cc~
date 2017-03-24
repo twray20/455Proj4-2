@@ -341,7 +341,7 @@ ExceptionHandler(ExceptionType which)
 			machine->pageTable[badAddr].valid = TRUE;
 			memMap->Print();
 
-			for (i = 0; i < pageTableSize; i++){
+			for (i = 0; i < machine->pageTableSize; i++){
 				if (machine->pageTable[i].valid == true){
 					printf("1");
 				}

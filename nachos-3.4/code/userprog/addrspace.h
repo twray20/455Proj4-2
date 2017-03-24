@@ -30,7 +30,7 @@ class AddrSpace {
     void InitRegisters();		// Initialize user-level CPU registers,
 					// before jumping to user code
 
-	void InitPages(int VAddr, int PAddr);
+	void InitPages(int VAddr, int PAddr, bool replaced);
 
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch 

@@ -325,20 +325,37 @@ ExceptionHandler(ExceptionType which)
 		break;
 
 
-	//Begin code changes by Thomas Wray
+	//Begin code changes by Thomas Wray and Hayden Presley
 	case PageFaultException :
 		{			
 			//printf("Page table size is %d\n", machine->pageTableSize);
 			printf("ERROR: PageFaultException, called by thread %i.\n",currentThread->getID());
 			int badAddr = machine->ReadRegister(BadVAddrReg) / PageSize;
 			int placement = memMap->Find();
+			
+			bool replaced = false;
 
 			if (placement == -1){
-				printf("NACHOS TERMINATING\n");
-				Cleanup();
+
+				if (v_choice == 1){
+					placement = *((int*)frameList.Remove());
+					replaced = true;
+				}
+				else if (v_choice == 2){
+					placement = random() % (NumPhysPages - 1);
+					replaced = true;
+				}
+				else{
+
+					printf("NACHOS TERMINATING\n");
+					Cleanup();
+				}
 			}
 
 			machine->pageTable[badAddr].valid = TRUE;
+
+			frameList.Append(&(frameNumbers[placement]));
+
 			memMap->Print();
 
 			for (i = 0; i < machine->pageTableSize; i++){
@@ -348,10 +365,10 @@ ExceptionHandler(ExceptionType which)
 				else printf("0");
 			}
 			printf("\n");
-			currentThread->space->InitPages(badAddr, placement);
+			currentThread->space->InitPages(badAddr, placement, replaced);
 			break;
 		}
-	//End code changes by Thomas Wray
+	//End code changes by Thomas Wray and Hayden Presley
 
 
 		default :
