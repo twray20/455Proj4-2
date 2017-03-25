@@ -24,7 +24,7 @@ struct IPTEntry{
 	Thread* threadptr;
 	int vPage;
 };
-IPTEntry* IPT = new IPTEntry[31];
+IPTEntry* IPT = new IPTEntry[numPhysPages];
 
 //----------------------------------------------------------------------
 // SwapHeader
@@ -106,7 +106,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 	//If no memory available, terminate
 	if(counter < numPages)
 	{
-		printf("Not enough contiguous memory for new process; terminating!.\n");
+		//printf("Not enough contiguous memory for new process; terminating!.\n");
 		currentThread->killNewChild = true;
 		return;
 	}
@@ -151,7 +151,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 	
 	pAddr = startPage * PageSize;
 	
-    memset(machine->mainMemory + pAddr, 0, size);
+    //memset(machine->mainMemory + pAddr, 0, size);
 
 // then, copy in the code and data segments into memory
 //Change these too since they assume virtual page = physical page
@@ -160,16 +160,14 @@ AddrSpace::AddrSpace(OpenFile *executable)
 
 	//Code changes by thomas wray and paul smith
 	fileName = new char[10];
-	sprintf(fileName, "%d.swap", currentThread->getID());
+	sprintf(fileName, "%d.swap", threadID);
+	printf("%s is being made\n", fileName);
 	fileSystem->Create(fileName, size);
 	OpenFile* swapFile = fileSystem->Open(fileName);
 	char* buffer = new char[size];
-	for (int c = 0; c < size; c++){
-		buffer[c] = 0;
-	}
-	swapFile->Write(buffer, size);
 	executable->Read(buffer, size);
 	swapFile->Write(buffer, size);
+	delete swapFile;
 	delete buffer;
 	//Code changes by thomas wray and paul smith
 }
@@ -266,16 +264,15 @@ void AddrSpace::RestoreState()
 
 //begin code changes by Thomas Wray and Hayden Presley
 void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
-	OpenFile * exec = fileSystem->Open(fileName);
+
+	OpenFile * swapFile = fileSystem->Open(fileName);
+	printf("%s is trying tobe accessed\n", fileName);
+	if(!swapFile) return;
+	pageTable[VAddr].valid = TRUE;
 
 	if (replaced){
 		Thread* threadToSwap = IPT[PAddr].threadptr;
-		char* swapFileName = new char[10];
-		sprintf(swapFileName, "%d.swap", threadToSwap->getID());
-		OpenFile* swapFile = fileSystem->Open(swapFileName);
-		swapFile->WriteAt(machine->mainMemory + PAddr * PageSize, PageSize, threadToSwap->space.noffH.code.inFileAddr + VAddr * PageSize);
-		delete swapFile;
-		delete swapFileName;
+		swapFile->WriteAt(&(machine->mainMemory[PAddr * PageSize]), PageSize, threadToSwap->space->noffH.code.inFileAddr + VAddr * PageSize);
 	}
 
 	memset(machine->mainMemory + PAddr * PageSize, 0, PageSize);
@@ -284,16 +281,16 @@ void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
 
 	IPT[PAddr].threadptr = currentThread;
 	IPT[PAddr].vPage = VAddr;
-
+	
     if (noffH.code.size > 0 && VAddr * PageSize >= 0 
 	&& noffH.code.size + noffH.initData.size > VAddr * PageSize) {													
-        exec->ReadAt(&(machine->mainMemory[PAddr * PageSize]),
+        swapFile->ReadAt(&(machine->mainMemory[PAddr * PageSize]),
 			PageSize, noffH.code.inFileAddr + VAddr * PageSize);
     }
 
 	printf("Init pages: address is %d and %d\n", VAddr, PAddr);
 
-	delete exec;
+	delete swapFile;
 }
 //end code changes by Thomas Wray
 

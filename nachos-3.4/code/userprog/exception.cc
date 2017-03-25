@@ -35,6 +35,10 @@ static int SRead(int addr, int size, int id);
 static void SWrite(char *buffer, int size, int id);
 Thread * getID(int toGet);
 
+extern int v_choice;
+extern List frameList;
+extern int frameNumbers[32];
+
 // end FA98
 
 //----------------------------------------------------------------------
@@ -193,18 +197,20 @@ ExceptionHandler(ExceptionType which)
 				delete filename;
 
 				// Calculate needed memory space
-				AddrSpace *space;
-				space = new AddrSpace(executable);
-				delete executable;
+				//code changes by t wray
 				// Do we have enough space?
 				if(!currentThread->killNewChild)	// If so...
 				{
+					threadID++;	// Increment the total number of threads.
+					AddrSpace *space;
+					space = new AddrSpace(executable);
+					
 					Thread* execThread = new Thread("thrad!");	// Make a new thread for the process.
 					execThread->space = space;	// Set the address space to the new space.
 					execThread->setID(threadID);	// Set the unique thread ID
 					activeThreads->Append(execThread);	// Put it on the active list.
 					machine->WriteRegister(2, threadID);	// Return the thread ID as our Exec return variable.
-					threadID++;	// Increment the total number of threads.
+					
 					execThread->Fork(processCreator, 0);	// Fork it.
 				}
 				else	// If not...
@@ -212,6 +218,7 @@ ExceptionHandler(ExceptionType which)
 					machine->WriteRegister(2, -1 * (threadID + 1));	// Return an error code
 					currentThread->killNewChild = false;	// Reset our variable
 				}
+				delete executable;
 				break;	// Get out.
 			}
 			case SC_Join :	// Join one process to another.
@@ -346,15 +353,14 @@ ExceptionHandler(ExceptionType which)
 					replaced = true;
 				}
 				else{
-
 					printf("NACHOS TERMINATING\n");
 					Cleanup();
 				}
 			}
 
-			machine->pageTable[badAddr].valid = TRUE;
-
-			frameList.Append(&(frameNumbers[placement]));
+			if (v_choice == 1){
+				frameList.Append(&(frameNumbers[placement]));
+			}
 
 			memMap->Print();
 

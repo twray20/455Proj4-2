@@ -23,17 +23,12 @@ int memChoice;
 bool pageFlag;
 
 //Begin code changes by Hunter Kliebert
-extern int v_choice;
+int v_choice = 0;
 //End code changes by Hunter Kliebert
 
 //Begin code changes by Hayden Presley
-extern int frameNumbers[32] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
-extern List frameList;
-extern struct IPTEntry{
-	Thread* threadptr;
-	int vPage;
-};
-extern IPTEntry* IPT = new IPTEntry[31];
+int frameNumbers[32] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
+List frameList = new List;
 //End code changes by Hayden Presley
 
 BitMap * memMap;

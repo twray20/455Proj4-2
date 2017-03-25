@@ -38,9 +38,9 @@ class AddrSpace {
 
    	NoffHeader noffH;
 	int pAddr;
-	//OpenFile *exec;
 	char* fileName;
 	int size;
+
 	
   //private:
     TranslationEntry *pageTable;	// Assume linear page table translation
