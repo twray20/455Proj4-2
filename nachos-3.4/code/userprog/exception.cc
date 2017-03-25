@@ -341,9 +341,7 @@ ExceptionHandler(ExceptionType which)
 			int placement = memMap->Find();
 			
 			bool replaced = false;
-
 			if (placement == -1){
-
 				if (v_choice == 1){
 					placement = *((int*)frameList.Remove());
 					replaced = true;

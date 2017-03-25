@@ -24,7 +24,7 @@ struct IPTEntry{
 	Thread* threadptr;
 	int vPage;
 };
-IPTEntry* IPT = new IPTEntry[numPhysPages];
+IPTEntry* IPT = new IPTEntry[NumPhysPages];
 
 //----------------------------------------------------------------------
 // SwapHeader
@@ -186,8 +186,12 @@ AddrSpace::~AddrSpace()
 	// which in turn only happens after space is set to true
 	if(space)
 	{
-		for(int i = startPage; i < numPages + startPage; i++)	// We need an offset of startPage + numPages for clearing.
-			memMap->Clear(i);
+		/*for(int i = startPage; i < numPages + startPage; i++)	// We need an offset of startPage + numPages for clearing.
+			memMap->Clear(i);*/
+		for(int i = 0; i < numPages; i++){
+			if(pageTable[i].valid == TRUE)
+				memMap->Clear(pageTable[i].physicalPage);
+		}
 
 		delete pageTable;
 
@@ -267,11 +271,16 @@ void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
 
 	OpenFile * swapFile = fileSystem->Open(fileName);
 	printf("%s is trying tobe accessed\n", fileName);
-	if(!swapFile) return;
+	if(!swapFile){ 
+		delete swapFile;
+		return;
+	}
 	pageTable[VAddr].valid = TRUE;
 
 	if (replaced){
 		Thread* threadToSwap = IPT[PAddr].threadptr;
+		int replacing = IPT[PAddr].vPage;
+		threadToSwap->space->pageTable[replacing].valid = FALSE;
 		swapFile->WriteAt(&(machine->mainMemory[PAddr * PageSize]), PageSize, threadToSwap->space->noffH.code.inFileAddr + VAddr * PageSize);
 	}
 

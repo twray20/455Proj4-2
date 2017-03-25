@@ -137,6 +137,14 @@ Initialize(int argc, char **argv)
 			memChoice = atoi(*(argv+1));
 	    argCount = 2;
 	}
+	else if (!strcmp(*argv, "-V")) {
+	    if(*(argv+1) == NULL)
+			v_choice = 0;
+	    else
+			v_choice = atoi(*(argv+1));
+	    argCount = 2;
+	}
+
 
 //Begin code changes by Hunter Kliebert
 //End code changes by Hunter Kliebert

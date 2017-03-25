@@ -20,18 +20,7 @@ int C[Dim][Dim];
 int
 main()
 {
-	Exec("../test/matmult");
-	Exec("../test/matmult");
-	Exec("../test/matmult");
-	Exec("../test/matmult");
-	Exec("../test/matmult");
-	Exec("../test/matmult");
-	Exec("../test/matmult");
-	Exec("../test/matmult");
-	Exec("../test/matmult");
-	Exec("../test/matmult");
-	Exec("../test/matmult");
-	Exec("../test/matmult");
-	Exec("../test/matmult");
+	Join(Exec("../test/whee"));
+	Yield();
     Exit(0);		/* and then we're done */
 }
