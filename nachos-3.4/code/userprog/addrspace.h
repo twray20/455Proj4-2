@@ -46,8 +46,10 @@ class AddrSpace {
 	
   //private:
     TranslationEntry *pageTable;	// Assume linear page table translation
-	TranslationEntry **outerPageTable;
-	int OPTSize;
+	#ifdef HPT
+		TranslationEntry **outerPageTable;
+		int OPTSize;
+	#endif
 					// for now!
     unsigned int numPages;		// Number of pages in the virtual 
 					// address space

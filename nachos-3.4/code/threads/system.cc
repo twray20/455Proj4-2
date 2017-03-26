@@ -137,7 +137,12 @@ Initialize(int argc, char **argv)
 			memChoice = atoi(*(argv+1));
 	    argCount = 2;
 	}
-
+//Begin code changes by Thomas Wray
+	else if (!strcmp(*argv, "-H")) {
+		printf("---------USING 2 LEVEL HIERARCHICAL PAGE TABLE---------\n");
+		#define HPT
+	}
+//End code changes by Thomas Wray
 //Begin code changes by Hunter Kliebert
 	else if (!strcmp(*argv, "-V")) {
 	    if(*(argv+1) == NULL)

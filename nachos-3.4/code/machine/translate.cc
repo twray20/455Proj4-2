@@ -191,7 +191,7 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     TranslationEntry *entry;
     unsigned int pageFrame;
 
-	int outerIndex, OPTSize;
+	
 
     DEBUG('a', "\tTranslate 0x%x, %s: ", virtAddr, writing ? "write" : "read");
 
@@ -211,21 +211,35 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     offset = (unsigned) virtAddr % PageSize;
 
 	//CODE CHANGE BY THOMAS WRAY/HAYDEN PRESLEY
-	OPTSize = currentThread->space->OPTSize;
-	outerIndex = pageTable[vpn/OPTSize].physicalPage;
-    
+	#ifdef HPT
+		int outerIndex, OPTSize;
+		OPTSize = currentThread->space->OPTSize;
+		outerIndex = pageTable[vpn/OPTSize].physicalPage;
+	#endif
+	bool pfe;
+    #ifdef HPT
+	pfe = currentThread->space->outerPageTable[outerIndex][vpn%OPTSize].valid;
+	#else
+	pfe = pageTable[vpn].valid;
+	#endif
+
     if (tlb == NULL) {		// => page table => vpn is index into table
 	if (vpn >= pageTableSize) {
 	    DEBUG('a', "virtual page # %d too large for page table size %d!\n", 
 			virtAddr, pageTableSize);
 	    return AddressErrorException;
-	} else if (!currentThread->space->outerPageTable[outerIndex][vpn%OPTSize].valid) {
+	}else if (!pfe) {
 	    DEBUG('a', "virtual page # %d too large for page table size %d!\n", 
 			virtAddr, pageTableSize);
 	    return PageFaultException;
+
 	}
 	//BEGIN CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEY
+	#ifdef HPT
 	entry = &currentThread->space->outerPageTable[outerIndex][vpn%OPTSize];
+	#else
+	entry = &pageTable[vpn];
+	#endif
 	//END CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEY
     } else {
         for (entry = NULL, i = 0; i < TLBSize; i++)

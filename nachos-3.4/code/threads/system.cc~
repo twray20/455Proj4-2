@@ -137,7 +137,12 @@ Initialize(int argc, char **argv)
 			memChoice = atoi(*(argv+1));
 	    argCount = 2;
 	}
-
+//Begin code changes by Thomas Wray
+	else if (!strcmp(*argv, "-H")) {
+		printf("---------USING 2 LEVEL HIERARCHICAL PAGE TABLE---------\n");
+		#define HPT	0
+	}
+//End code changes by Thomas Wray
 //Begin code changes by Hunter Kliebert
 	else if (!strcmp(*argv, "-V")) {
 	    if(*(argv+1) == NULL)
@@ -197,7 +202,7 @@ Initialize(int argc, char **argv)
 
 
 	activeThreads = new List();	// Make the active threads list.
-	threadID = 1; // Initialize our total number of active threads.
+	threadID = 0; // Initialize our total number of active threads.
 #endif
 #ifdef FILESYS
     synchDisk = new SynchDisk("DISK");

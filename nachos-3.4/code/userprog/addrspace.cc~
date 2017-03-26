@@ -124,6 +124,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 					numPages, size);
 // first, set up the translation 
 	//BEGIN CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEY
+	#ifdef HPT
 	OPTSize = (numPages / 4) + (numPages%4);	
 	outerPageTable = new TranslationEntry*[4];
 	for (i = 0; i < 4; i++){
@@ -136,11 +137,11 @@ AddrSpace::AddrSpace(OpenFile *executable)
 			outerPageTable[i][j].readOnly = FALSE;
 		}
 	}
-	//END CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEY
+	
 	
 
     pageTable = new TranslationEntry[4];
-    for (i = 0; i < numPages; i++) {
+    for (i = 0; i < 4; i++) {
 		pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
 		pageTable[i].physicalPage = i;
 		//pageTable[i].physicalPage = i + startPage;	NOW DONE IN PAGEFAULTEXCEPTION
@@ -158,6 +159,28 @@ AddrSpace::AddrSpace(OpenFile *executable)
 		//to indicate that the memory is in use
 		//memMap->Mark(i + startPage);
     }
+	#else
+    pageTable = new TranslationEntry[numPages];
+    for (i = 0; i < numPages; i++) {
+		pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+
+		//pageTable[i].physicalPage = i + startPage;	NOW DONE IN PAGEFAULTEXCEPTION
+
+		//Code Change by Thomas Wray
+		pageTable[i].valid = FALSE;		//set each valid bit to false so that a PageFaultException is thrown
+
+		pageTable[i].use = FALSE;
+		pageTable[i].dirty = FALSE;
+		pageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
+						// a separate page, we could set its 
+						// pages to be read-only
+
+		//Take the global bitmap and set the relevant chunks
+		//to indicate that the memory is in use
+		//memMap->Mark(i + startPage);
+	}
+	#endif
+	//END CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEY
 	
 	//memMap->Print();	// Useful!
     
@@ -208,18 +231,22 @@ AddrSpace::~AddrSpace()
 	{			
 		/*for(int i = startPage; i < numPages + startPage; i++)	// We need an offset of startPage + numPages for clearing.
 			memMap->Clear(i);*/
+		#ifdef HPT
 		for(int i = 0; i < 4; i++){
 			for(int j = 0; j < OPTSize; j++)
 				if(outerPageTable[i][j].valid == TRUE)
 					(memMap->Clear(outerPageTable[i][j].physicalPage));
 		}
-		printf("GOT HERE!\n");
 		for(int i = 0; i < 4; i++){	
 			delete outerPageTable[i];
 		}
-		printf("GOT HERE!\n");
 		delete outerPageTable;
-		printf("GOT HERE!\n");				
+		#else
+		for(int i = 0; i < numPages; i++){
+			if(pageTable[i].valid == TRUE)
+				memMap->Clear(pageTable[i].physicalPage);
+		}
+		#endif			
 		delete pageTable;
 		memMap->Print();
 	}
@@ -304,8 +331,11 @@ void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
 		delete swapFile;
 		return;
 	}
-	int outerIndex = pageTable[VAddr/OPTSize].physicalPage;
-	outerPageTable[outerIndex][VAddr%OPTSize].valid = TRUE;
+	#ifdef HPT
+		int outerIndex = pageTable[VAddr/OPTSize].physicalPage;
+		outerPageTable[outerIndex][VAddr%OPTSize].valid = TRUE;
+	#endif
+	
 	//pageTable[VAddr].valid = TRUE;
 
 	/*for (int i = 0; i < machine->pageTableSize; i++){
@@ -320,8 +350,12 @@ void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
 		Thread* threadToSwap = IPT[PAddr].threadptr;
 		int replacing = IPT[PAddr].vPage;	
 		printf("Replacing is %d\n", replacing);
-		int outerIndex_replacing = threadToSwap->space->pageTable[replacing/threadToSwap->space->OPTSize].physicalPage;
-  		threadToSwap->space->outerPageTable[outerIndex_replacing][replacing%threadToSwap->space->OPTSize].valid = FALSE;
+		#ifdef HPT
+			int outerIndex_replacing = threadToSwap->space->pageTable[replacing/threadToSwap->space->OPTSize].physicalPage;
+	  		threadToSwap->space->outerPageTable[outerIndex_replacing][replacing%threadToSwap->space->OPTSize].valid = FALSE;
+		#else
+			threadToSwap->space->pageTable[replacing].valid = FALSE;
+		#endif
 		printf("OPENING SWAPFILE: %s\n", threadToSwap->space->fileName);
 		OpenFile * swapping = fileSystem->Open(threadToSwap->space->fileName);
 		swapping->WriteAt(&(machine->mainMemory[PAddr * PageSize]), PageSize, threadToSwap->space->noffH.code.inFileAddr + replacing * PageSize);
@@ -329,7 +363,7 @@ void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
 		delete swapping;
 	//Begin code changes by Hunter Kliebert
 		if (pageFlag == TRUE)															 
-			printf("\nPAGE FAULT: PROCESS %i REQUESTED VIRTUAL PAGE %i\nSWAP OUT PHYSICAL PAGE %i FROM PROCESS %i\nVIRTUAL PAGE %i REMOVED\n\n",
+			printf("\nPAGE FAULT: PROCESS %i REQUESTED VIRTUAL PAGE %i\nSWAP OUT PHYSICAL PAGE %i FROM PROCESS %i\nVIRTUAL PAGE %i REMOV//END CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEYED\n\n",
 			currentThread->getID(), VAddr, PAddr, threadToSwap->getID(), replacing);
 	//End code changes by Hunter Kliebert
 	}
@@ -343,8 +377,11 @@ void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
 	memset(machine->mainMemory + PAddr * PageSize, 0, PageSize);
 
 
-	outerPageTable[outerIndex][VAddr%OPTSize].physicalPage = PAddr;
-	//pageTable[VAddr].physicalPage = PAddr;
+	#ifdef HPT
+		outerPageTable[outerIndex][VAddr%OPTSize].physicalPage = PAddr;
+	#else
+		pageTable[VAddr].physicalPage = PAddr;
+	#endif
 	IPT[PAddr].threadptr = currentThread;
 	IPT[PAddr].vPage = VAddr;
 	printf("IPT[%d].vPage is %d\n", PAddr, IPT[PAddr].vPage);
