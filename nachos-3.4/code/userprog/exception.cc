@@ -163,7 +163,7 @@ ExceptionHandler(ExceptionType which)
 			break;
 		case SC_Exec :	// Executes a user process inside another user process.
 		   {
-				printf("SYSTEM CALL: Exec, called by thread %i.\n",currentThread->getID());
+				printf("SYSTEM CALL: Exec making thread %d, called by thread %i.\n",threadID+1, currentThread->getID());
 
 				// Retrieve the address of the filename
 				int fileAddress = arg1; // retrieve argument stored in register r4
@@ -195,16 +195,14 @@ ExceptionHandler(ExceptionType which)
 					break;
 				}
 				delete filename;
-
+				threadID++;	// Increment the total number of threads.
+				AddrSpace *space;
+				space = new AddrSpace(executable);
 				// Calculate needed memory space
 				//code changes by t wray
 				// Do we have enough space?
-				if(!currentThread->killNewChild)	// If so...
-				{
-					threadID++;	// Increment the total number of threads.
-					AddrSpace *space;
-					space = new AddrSpace(executable);
-					
+				//if(!currentThread->killNewChild)	// If so...
+				//{
 					Thread* execThread = new Thread("thrad!");	// Make a new thread for the process.
 					execThread->space = space;	// Set the address space to the new space.
 					execThread->setID(threadID);	// Set the unique thread ID
@@ -212,12 +210,13 @@ ExceptionHandler(ExceptionType which)
 					machine->WriteRegister(2, threadID);	// Return the thread ID as our Exec return variable.
 					
 					execThread->Fork(processCreator, 0);	// Fork it.
-				}
-				else	// If not...
+				//}
+				/*else	// If not...
 				{
+					threadID--;
 					machine->WriteRegister(2, -1 * (threadID + 1));	// Return an error code
 					currentThread->killNewChild = false;	// Reset our variable
-				}
+				}*/
 				delete executable;
 				break;	// Get out.
 			}

@@ -23,7 +23,7 @@ int memChoice;
 bool pageFlag;
 
 //Begin code changes by Hunter Kliebert
-extern int v_choice = 0;
+int v_choice = 0;
 //End code changes by Hunter Kliebert
 
 //Begin code changes by Hayden Presley

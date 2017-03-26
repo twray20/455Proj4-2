@@ -197,7 +197,7 @@ Initialize(int argc, char **argv)
 
 
 	activeThreads = new List();	// Make the active threads list.
-	threadID = 1; // Initialize our total number of active threads.
+	threadID = 0; // Initialize our total number of active threads.
 #endif
 #ifdef FILESYS
     synchDisk = new SynchDisk("DISK");

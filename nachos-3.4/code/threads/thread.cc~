@@ -63,6 +63,8 @@ Thread::~Thread()
 {
     //DEBUG('t', "Deleting thread \"%i\"\n", ID);
 
+
+
     ASSERT(this != currentThread);
     if (stack != NULL)
 	DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
@@ -197,7 +199,7 @@ Thread::Yield ()
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
     
     ASSERT(this == currentThread);
-	//printf("CONTEXT SWITCH: Yielding Thread %i to ",getID());
+	printf("CONTEXT SWITCH: Yielding Thread %i to ",getID());
     
     //DEBUG('t', "Yielding thread \"%i\"\n", getID());
     
