@@ -294,10 +294,11 @@ void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
 		printf("OPENING SWAPFILE: %s\n", threadToSwap->space->fileName);
 		OpenFile * swapping = fileSystem->Open(threadToSwap->space->fileName);
 		swapping->WriteAt(&(machine->mainMemory[PAddr * PageSize]), PageSize, threadToSwap->space->noffH.code.inFileAddr + VAddr * PageSize);
+		delete swapping;
 		
 	//Begin code changes by Hunter Kliebert
 		//if (pageFlag == TRUE)															 UNCOMMENT THIS
-			printf("\nPAGE FAULT: PROCESS %i REQUESTED VIRTUAL PAGE %i\nASSIGNED PHYSICAL PAGE %i\nPROCESS %i IS BEING SWAPPED OUT TO VIRTUAL PAGE %i\n\n",
+			printf("\nPAGE FAULT: PROCESS %i REQUESTED VIRTUAL PAGE %i\nSWAP OUT PHYSICAL PAGE %i\n FROM PROCESS %i\nVIRTUAL PAGE %i REMOVED\n\n",
 			currentThread->getID(), VAddr, PAddr, threadToSwap->getID(), replacing);
 	//End code changes by Hunter Kliebert
 	}
