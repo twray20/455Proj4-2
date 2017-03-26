@@ -32,13 +32,27 @@ StartProcess(char *filename)
 	return;
     }
 	
-	printf("Memory allocation method chosen: ");
+	/*printf("Memory allocation method chosen: ");
 	if(memChoice == 1)
 		printf("First-fit.\n");
 	else if (memChoice == 2)
 		printf("Best-fit.\n");
 	else
-		printf("Worst-fit.\n");
+		printf("Worst-fit.\n");*/
+
+//Begin code changes by Hunter Kliebert
+	printf("\nNUMBER OF PHYSICAL PAGES: %i\n", NumPhysPages);
+
+	printf("PAGE SIZE: %i\n", PageSize);
+
+	printf("PAGE REPLACEMENT ALGORITHM USED: ");
+	if (v_choice == 1)
+		printf("FIRST IN FIRST OUT\n\n");
+	else if (v_choice == 2)
+		printf("RANDOM\n\n");
+	else
+		printf("VIRTAL MEMORY DISABLED (DEMAND PAGING ONLY)\n\n");
+//End code changes by Hunter Kliebert
 
     space = new AddrSpace(executable);    
     currentThread->space = space;

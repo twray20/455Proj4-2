@@ -155,7 +155,8 @@ int
 OpenForWrite(char *name)
 {
     int fd = open(name, O_RDWR|O_CREAT|O_TRUNC, 0666);
-	printf("%d\n",errno);
+	//COMMENTED OUT FOR SANITY (Hunter Kliebert)
+	//printf("%d\n",errno);
     ASSERT(fd >= 0); 
     return fd;
 }

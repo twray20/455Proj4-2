@@ -137,6 +137,8 @@ Initialize(int argc, char **argv)
 			memChoice = atoi(*(argv+1));
 	    argCount = 2;
 	}
+
+//Begin code changes by Hunter Kliebert
 	else if (!strcmp(*argv, "-V")) {
 	    if(*(argv+1) == NULL)
 			v_choice = 0;
@@ -144,10 +146,8 @@ Initialize(int argc, char **argv)
 			v_choice = atoi(*(argv+1));
 	    argCount = 2;
 	}
-
-
-//Begin code changes by Hunter Kliebert
 //End code changes by Hunter Kliebert
+
 #ifdef USER_PROGRAM
 	if (!strcmp(*argv, "-s"))
 	    debugUserProg = TRUE;

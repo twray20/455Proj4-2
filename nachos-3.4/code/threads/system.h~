@@ -34,10 +34,6 @@ extern int threadChoice;
 extern int memChoice;
 extern bool pageFlag;
 
-//Begin code changes by Hunter Kliebert
-extern int v_choice;
-//End code changes by Hunter Kliebert
-
 extern BitMap *memMap;				//Bitmap to keep track of memory use
 
 #ifdef USER_PROGRAM

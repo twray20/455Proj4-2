@@ -23,7 +23,7 @@ int memChoice;
 bool pageFlag;
 
 //Begin code changes by Hunter Kliebert
-int v_choice = 0;
+extern int v_choice = 0;
 //End code changes by Hunter Kliebert
 
 //Begin code changes by Hayden Presley
@@ -139,7 +139,15 @@ Initialize(int argc, char **argv)
 	}
 
 //Begin code changes by Hunter Kliebert
+	else if (!strcmp(*argv, "-V")) {
+	    if(*(argv+1) == NULL)
+			v_choice = 0;
+	    else
+			v_choice = atoi(*(argv+1));
+	    argCount = 2;
+	}
 //End code changes by Hunter Kliebert
+
 #ifdef USER_PROGRAM
 	if (!strcmp(*argv, "-s"))
 	    debugUserProg = TRUE;

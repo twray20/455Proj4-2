@@ -47,7 +47,7 @@ class FileSystem {
 
     bool Create(char *name, int initialSize) {
 	int fileDescriptor = OpenForWrite(name);
-	
+	printf("...\n");
 	if (fileDescriptor == -1) return FALSE;
 	Close(fileDescriptor); 
 	return TRUE; 

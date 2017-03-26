@@ -336,7 +336,7 @@ ExceptionHandler(ExceptionType which)
 	case PageFaultException :
 		{			
 			//printf("Page table size is %d\n", machine->pageTableSize);
-			printf("ERROR: PageFaultException, called by thread %i.\n",currentThread->getID());
+			//printf("ERROR: PageFaultException, called by thread %i.\n",currentThread->getID());
 			int badAddr = machine->ReadRegister(BadVAddrReg) / PageSize;
 			int placement = memMap->Find();
 			

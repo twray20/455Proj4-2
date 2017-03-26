@@ -20,11 +20,13 @@
 #include "addrspace.h"
 #include "noff.h"
 
+//Begin code changes by Hayden Presley
 struct IPTEntry{
 	Thread* threadptr;
 	int vPage;
 };
 IPTEntry* IPT = new IPTEntry[NumPhysPages];
+//End code changes by Hayden Presley
 
 //----------------------------------------------------------------------
 // SwapHeader
@@ -158,7 +160,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 	  //Fix this by adding startPage times page size as an offset
 	//exec = executable;	
 
-	//Code changes by thomas wray and paul smith
+//Code changes by Thomas Wray and Paul Smith
 	fileName = new char[10];
 	sprintf(fileName, "%d.swap", threadID);
 	printf("%s is being made\n", fileName);
@@ -169,7 +171,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 	swapFile->Write(buffer, size);
 	delete swapFile;
 	delete buffer;
-	//Code changes by thomas wray and paul smith
+//Code changes by Thomas wray and Paul smith
 }
 
 //----------------------------------------------------------------------
@@ -270,7 +272,7 @@ void AddrSpace::RestoreState()
 void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
 
 	OpenFile * swapFile = fileSystem->Open(fileName);
-	printf("%s is trying tobe accessed\n", fileName);
+	printf("%s is trying to be accessed\n", fileName);
 	if(!swapFile){ 
 		delete swapFile;
 		return;
@@ -279,8 +281,19 @@ void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
 
 	if (replaced){
 		Thread* threadToSwap = IPT[PAddr].threadptr;
+		int replacing = IPT[PAddr].vPage;
+		threadToSwap->space->pageTable[replacing].valid = FALSE;
 		swapFile->WriteAt(&(machine->mainMemory[PAddr * PageSize]), PageSize, threadToSwap->space->noffH.code.inFileAddr + VAddr * PageSize);
+
+//Begin code changes by Hunter Kliebert
+		printf("\nPAGE FAULT: PROCESS %i REQUESTED VIRTUAL PAGE %i\nASSIGNED PHYSICAL PAGE %i\nPROCESS %i IS BEING SWAPPED OUT TO VIRTUAL PAGE %i\n\n", currentThread->getID(), VAddr, PAddr, threadToSwap->getID(), replacing);
+//End code changes by Hunter Kliebert
 	}
+
+//Begin code changes by Hunter Kliebert
+	else
+		printf("\nPAGE FAULT: PROCESS %i REQUESTED VIRTUAL PAGE %i\nASSIGNED PHYSICAL PAGE %i\n\n", currentThread->getID(), VAddr, PAddr);
+//End code changes by Hunter Kliebert
 
 	memset(machine->mainMemory + PAddr * PageSize, 0, PageSize);
 
@@ -295,7 +308,7 @@ void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
 			PageSize, noffH.code.inFileAddr + VAddr * PageSize);
     }
 
-	printf("Init pages: address is %d and %d\n", VAddr, PAddr);
+	//printf("Init pages: address is %d and %d\n", VAddr, PAddr);
 
 	delete swapFile;
 }

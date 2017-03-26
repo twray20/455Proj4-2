@@ -342,7 +342,6 @@ ExceptionHandler(ExceptionType which)
 			
 			bool replaced = false;
 			if (placement == -1){
-				printf("/////////////////////////////////////////////////////////////////%d is v choice", v_choice);
 				if (v_choice == 1){
 					placement = *((int*)frameList.Remove());
 					replaced = true;
