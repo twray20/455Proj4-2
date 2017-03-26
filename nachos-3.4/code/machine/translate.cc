@@ -191,6 +191,8 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     TranslationEntry *entry;
     unsigned int pageFrame;
 
+	int outerIndex, OPTSize;
+
     DEBUG('a', "\tTranslate 0x%x, %s: ", virtAddr, writing ? "write" : "read");
 
 // check for alignment errors
@@ -207,18 +209,24 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 // from the virtual address
     vpn = (unsigned) virtAddr / PageSize;
     offset = (unsigned) virtAddr % PageSize;
+
+	//CODE CHANGE BY THOMAS WRAY/HAYDEN PRESLEY
+	OPTSize = currentThread->space->OPTSize;
+	outerIndex = pageTable[vpn/OPTSize].physicalPage;
     
     if (tlb == NULL) {		// => page table => vpn is index into table
 	if (vpn >= pageTableSize) {
 	    DEBUG('a', "virtual page # %d too large for page table size %d!\n", 
 			virtAddr, pageTableSize);
 	    return AddressErrorException;
-	} else if (!pageTable[vpn].valid) {
+	} else if (!currentThread->space->outerPageTable[outerIndex][vpn%OPTSize].valid) {
 	    DEBUG('a', "virtual page # %d too large for page table size %d!\n", 
 			virtAddr, pageTableSize);
 	    return PageFaultException;
 	}
-	entry = &pageTable[vpn];
+	//BEGIN CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEY
+	entry = &currentThread->space->outerPageTable[outerIndex][vpn%OPTSize];
+	//END CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEY
     } else {
         for (entry = NULL, i = 0; i < TLBSize; i++)
     	    if (tlb[i].valid && (((unsigned int)tlb[i].virtualPage) == vpn)) {

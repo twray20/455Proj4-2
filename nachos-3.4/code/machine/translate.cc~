@@ -191,6 +191,8 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     TranslationEntry *entry;
     unsigned int pageFrame;
 
+	int outerIndex, OPTSize;
+
     DEBUG('a', "\tTranslate 0x%x, %s: ", virtAddr, writing ? "write" : "read");
 
 // check for alignment errors
@@ -198,7 +200,7 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 	DEBUG('a', "alignment problem at %d, size %d!\n", virtAddr, size);
 	return AddressErrorException;
     }
-    printf("The virtual address is %d, physical is %d\n", virtAddr, *physAddr);
+    //printf("The virtual address is %d, physical is %d\n", virtAddr, *physAddr);
     // we must have either a TLB or a page table, but not both!
     ASSERT(tlb == NULL || pageTable == NULL);	
     ASSERT(tlb != NULL || pageTable != NULL);	
@@ -207,6 +209,10 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 // from the virtual address
     vpn = (unsigned) virtAddr / PageSize;
     offset = (unsigned) virtAddr % PageSize;
+
+	//CODE CHANGE BY THOMAS WRAY/HAYDEN PRESLEY
+	OPTSize = currentThread->space->OPTSize;
+	outerIndex = pageTable[vpn/OPTSize].physicalPage;
     
     if (tlb == NULL) {		// => page table => vpn is index into table
 	if (vpn >= pageTableSize) {
@@ -218,7 +224,9 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 			virtAddr, pageTableSize);
 	    return PageFaultException;
 	}
-	entry = &pageTable[vpn];
+	//BEGIN CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEY
+	entry = &currentThread->space->outerPageTable[outerIndex][vpn%OPTSize];
+	//END CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEY
     } else {
         for (entry = NULL, i = 0; i < TLBSize; i++)
     	    if (tlb[i].valid && (((unsigned int)tlb[i].virtualPage) == vpn)) {

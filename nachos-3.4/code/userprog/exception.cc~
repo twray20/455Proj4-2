@@ -201,8 +201,8 @@ ExceptionHandler(ExceptionType which)
 				// Calculate needed memory space
 				//code changes by t wray
 				// Do we have enough space?
-				if(!currentThread->killNewChild)	// If so...
-				{
+				//if(!currentThread->killNewChild)	// If so...
+				//{
 					Thread* execThread = new Thread("thrad!");	// Make a new thread for the process.
 					execThread->space = space;	// Set the address space to the new space.
 					execThread->setID(threadID);	// Set the unique thread ID
@@ -210,13 +210,13 @@ ExceptionHandler(ExceptionType which)
 					machine->WriteRegister(2, threadID);	// Return the thread ID as our Exec return variable.
 					
 					execThread->Fork(processCreator, 0);	// Fork it.
-				}
-				else	// If not...
+				//}
+				/*else	// If not...
 				{
 					threadID--;
 					machine->WriteRegister(2, -1 * (threadID + 1));	// Return an error code
 					currentThread->killNewChild = false;	// Reset our variable
-				}
+				}*/
 				delete executable;
 				break;	// Get out.
 			}
@@ -254,9 +254,9 @@ ExceptionHandler(ExceptionType which)
 				if(arg1 == 0)	// Did we exit properly?  If not, show an error message.
 					printf("Process %i exited normally!\n", currentThread->getID());
 				else
-					printf("ERROR: Process %i exited abnormally!\n", currentThread->getID());
-				
+					printf("ERROR: Process %i exited abnormally!\n", currentThread->getID());		
 				if(currentThread->space)	// Delete the used memory from the process.
+
 					delete currentThread->space;
 				currentThread->Finish();	// Delete the thread.
 

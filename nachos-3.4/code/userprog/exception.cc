@@ -255,7 +255,7 @@ ExceptionHandler(ExceptionType which)
 					printf("Process %i exited normally!\n", currentThread->getID());
 				else
 					printf("ERROR: Process %i exited abnormally!\n", currentThread->getID());
-				
+		
 				if(currentThread->space)	// Delete the used memory from the process.
 					delete currentThread->space;
 				currentThread->Finish();	// Delete the thread.

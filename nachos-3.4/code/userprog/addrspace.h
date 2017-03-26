@@ -36,6 +36,8 @@ class AddrSpace {
     void RestoreState();		// info on a context switch 
 
 
+	
+
    	NoffHeader noffH;
 	int pAddr;
 	char* fileName;
@@ -44,6 +46,8 @@ class AddrSpace {
 	
   //private:
     TranslationEntry *pageTable;	// Assume linear page table translation
+	TranslationEntry **outerPageTable;
+	int OPTSize;
 					// for now!
     unsigned int numPages;		// Number of pages in the virtual 
 					// address space
