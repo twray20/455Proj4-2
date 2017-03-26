@@ -362,13 +362,6 @@ ExceptionHandler(ExceptionType which)
 
 			memMap->Print();
 
-			for (i = 0; i < machine->pageTableSize; i++){
-				if (machine->pageTable[i].valid == true){
-					printf("1");
-				}
-				else printf("0");
-			}
-			printf("\n");
 			currentThread->space->InitPages(badAddr, placement, replaced);
 			break;
 		}

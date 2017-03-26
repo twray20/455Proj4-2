@@ -335,8 +335,9 @@ ExceptionHandler(ExceptionType which)
 	//Begin code changes by Thomas Wray and Hayden Presley
 	case PageFaultException :
 		{			
+			printf("Maybe here?\n");
 			//printf("Page table size is %d\n", machine->pageTableSize);
-			printf("ERROR: PageFaultException, called by thread %i.\n",currentThread->getID());
+			//printf("ERROR: PageFaultException, called by thread %i.\n",currentThread->getID());
 			int badAddr = machine->ReadRegister(BadVAddrReg) / PageSize;
 			int placement = memMap->Find();
 			
@@ -362,13 +363,6 @@ ExceptionHandler(ExceptionType which)
 
 			memMap->Print();
 
-			for (i = 0; i < machine->pageTableSize; i++){
-				if (machine->pageTable[i].valid == true){
-					printf("1");
-				}
-				else printf("0");
-			}
-			printf("\n");
 			currentThread->space->InitPages(badAddr, placement, replaced);
 			break;
 		}

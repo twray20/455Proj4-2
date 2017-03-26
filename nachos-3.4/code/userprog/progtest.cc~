@@ -41,7 +41,7 @@ StartProcess(char *filename)
 		printf("Worst-fit.\n");*/
 
 //Begin code changes by Hunter Kliebert
-	printf("NUMBER OF PHYSICAL PAGES: %i\n", NumPhysPages);
+	printf("\nNUMBER OF PHYSICAL PAGES: %i\n", NumPhysPages);
 
 	printf("PAGE SIZE: %i\n", PageSize);
 
@@ -56,6 +56,7 @@ StartProcess(char *filename)
 
     space = new AddrSpace(executable);    
     currentThread->space = space;
+	printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~THREAD ID WAS %d", currentThread->getID());
     
     delete executable;			// close file
 
