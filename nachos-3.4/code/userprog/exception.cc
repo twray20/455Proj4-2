@@ -360,8 +360,9 @@ ExceptionHandler(ExceptionType which)
 			}
 
 			//memMap->Print();
-
+			//currentThread->spaceSem->P();
 			currentThread->space->InitPages(badAddr, placement, replaced);
+			//currentThread->spaceSem->V();
 			break;
 		}
 	//End code changes by Thomas Wray and Hayden Presley

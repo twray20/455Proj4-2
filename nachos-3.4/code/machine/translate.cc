@@ -212,13 +212,15 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     vpn = (unsigned) virtAddr / PageSize;
     offset = (unsigned) virtAddr % PageSize;
 
-	//CODE CHANGE BY THOMAS WRAY/HAYDEN PRESLEY
+	//BEGIN CODE CHANGE BY TEAM \n
 	bool pfe;
 	int outerIndex, OPTSize;
-	if(HPT == true){		
+	if(HPT == true){
+		//currentThread->spaceSem->P();		
 		OPTSize = currentThread->space->OPTSize;
 		outerIndex = pageTable[vpn/OPTSize].physicalPage;
 		pfe = currentThread->space->outerPageTable[outerIndex][vpn%OPTSize].valid;
+		//currentThread->spaceSem->V();
 	}else{
 	pfe = pageTable[vpn].valid;
 	}
@@ -234,13 +236,15 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 	    return PageFaultException;
 
 	}
-	//BEGIN CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEY
+
 	if(HPT == true){
+	//currentThread->spaceSem->P();
 	entry = &currentThread->space->outerPageTable[outerIndex][vpn%OPTSize];
+	//currentThread->spaceSem->V();
 	}else{
 	entry = &pageTable[vpn];
 	}
-	//END CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEY
+	//END CODE CHANGES BY TEAM \n
     } else {
         for (entry = NULL, i = 0; i < TLBSize; i++)
     	    if (tlb[i].valid && (((unsigned int)tlb[i].virtualPage) == vpn)) {

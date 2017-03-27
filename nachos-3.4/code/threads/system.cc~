@@ -142,7 +142,7 @@ Initialize(int argc, char **argv)
 //Begin code changes by Thomas Wray
 	else if (!strcmp(*argv, "-H")) {
 		printf("---------USING 2 LEVEL HIERARCHICAL PAGE TABLE---------\n");
-		#define HPT
+		HPT = true;
 	}
 //End code changes by Thomas Wray
 //Begin code changes by Hunter Kliebert

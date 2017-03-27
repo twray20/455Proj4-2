@@ -323,7 +323,7 @@ void AddrSpace::RestoreState()
 
 
 
-//begin code changes by Thomas Wray and Hayden Presley
+//begin code changes by Team \n
 void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
 	
 	OpenFile * swapFile = fileSystem->Open(fileName);
@@ -359,20 +359,27 @@ void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
 		int replacing = IPT[PAddr].vPage;	
 		//printf("Replacing is %d\n", replacing);
 		if(HPT == true){
+			//threadToSwap->spaceSem->P();
 			int outerIndex_replacing = threadToSwap->space->pageTable[replacing/threadToSwap->space->OPTSize].physicalPage;
 	  		threadToSwap->space->outerPageTable[outerIndex_replacing][replacing%threadToSwap->space->OPTSize].valid = FALSE;
+			//threadToSwap->spaceSem->V();
 		}else{
+			//threadToSwap->spaceSem->P();
 			threadToSwap->space->pageTable[replacing].valid = FALSE;
+			//threadToSwap->spaceSem->V();
 		}
-		//printf("OPENING SWAPFILE: %s\n", threadToSwap->space->fileName);
+
+		//threadToSwap->spaceSem->P();
+		//threadToSwap->swapSem->P();
 		OpenFile * swapping = fileSystem->Open(threadToSwap->space->fileName);
 		swapping->WriteAt(&(machine->mainMemory[PAddr * PageSize]), PageSize, threadToSwap->space->noffH.code.inFileAddr + replacing * PageSize);
-		//printf("Location is %d\n",threadToSwap->space->noffH.code.inFileAddr + replacing * PageSize);
+
 		delete swapping;
+		//threadToSwap->swapSem->V();
+		//threadToSwap->spaceSem->V();
 	//Begin code changes by Hunter Kliebert
-		if (pageFlag == TRUE)															 
-			printf("\nPAGE FAULT: PROCESS %i REQUESTED VIRTUAL PAGE %i\nSWAP OUT PHYSICAL PAGE %i FROM PROCESS %i\nVIRTUAL PAGE %i REMOV//END CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEYED\n\n",
-			currentThread->getID(), VAddr, PAddr, threadToSwap->getID(), replacing);
+		if (pageFlag == TRUE)
+			printf("\nPAGE FAULT: PROCESS %i REQUESTED VIRTUAL PAGE %i\nSWAP OUT PHYSICAL PAGE %i FROM PROCESS %i\nVIRTUAL PAGE %i REMOV//END CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEYED\n\n", currentThread->getID(), VAddr, PAddr, threadToSwap->getID(), replacing);
 	//End code changes by Hunter Kliebert
 	}
 
@@ -404,5 +411,4 @@ void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
 
 	delete swapFile;
 }
-//end code changes by Thomas Wray and Hayden Presley
-
+//end code changes by Team \n

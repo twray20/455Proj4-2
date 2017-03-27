@@ -109,8 +109,8 @@ class Thread {
 	bool isJoined;	// Used to determine if we've already joined to a child process.
 
 //Begin code changes by Hunter Kliebert, Hayden Presley, and Paul Smith
-	//Semaphore* spaceSem;
-	//Semaphore* swapSem;
+	Semaphore* spaceSem;
+	Semaphore* swapSem;
 //End code changes by Hunter Kliebert, Hayden Presley, and Paul Smith
 
   private:
