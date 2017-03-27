@@ -38,6 +38,8 @@
 // simulated machine's format of little endian.  These end up
 // being NOPs when the host machine is also little endian (DEC and Intel).
 
+extern bool HPT;
+
 unsigned int
 WordToHost(unsigned int word) {
 #ifdef HOST_IS_BIG_ENDIAN
@@ -220,7 +222,7 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     #ifdef HPT
 	pfe = currentThread->space->outerPageTable[outerIndex][vpn%OPTSize].valid;
 	#else
-	pfe = pageTable[vpn].valid
+	pfe = pageTable[vpn].valid;
 	#endif
 
     if (tlb == NULL) {		// => page table => vpn is index into table

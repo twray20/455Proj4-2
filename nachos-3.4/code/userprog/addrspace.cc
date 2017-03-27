@@ -20,6 +20,7 @@
 #include "addrspace.h"
 #include "noff.h"
 
+extern bool HPT;
 //Begin code changes by Hayden Presley
 struct IPTEntry{
 	Thread* threadptr;
@@ -124,7 +125,8 @@ AddrSpace::AddrSpace(OpenFile *executable)
 					numPages, size);
 // first, set up the translation 
 	//BEGIN CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEY
-	#ifdef HPT
+	if(HPT == true){
+	//printf("//////////////////////////////////////////////////////////////////////////\n");
 	OPTSize = (numPages / 4) + (numPages%4);	
 	outerPageTable = new TranslationEntry*[4];
 	for (i = 0; i < 4; i++){
@@ -159,7 +161,8 @@ AddrSpace::AddrSpace(OpenFile *executable)
 		//to indicate that the memory is in use
 		//memMap->Mark(i + startPage);
     }
-	#else
+	}
+	else{
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++) {
 		pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
@@ -179,7 +182,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 		//to indicate that the memory is in use
 		//memMap->Mark(i + startPage);
 	}
-	#endif
+	}
 	//END CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEY
 	
 	//memMap->Print();	// Useful!
@@ -231,7 +234,7 @@ AddrSpace::~AddrSpace()
 	{			
 		/*for(int i = startPage; i < numPages + startPage; i++)	// We need an offset of startPage + numPages for clearing.
 			memMap->Clear(i);*/
-		#ifdef HPT
+		if(HPT == true){
 		for(int i = 0; i < 4; i++){
 			for(int j = 0; j < OPTSize; j++)
 				if(outerPageTable[i][j].valid == TRUE)
@@ -241,14 +244,15 @@ AddrSpace::~AddrSpace()
 			delete outerPageTable[i];
 		}
 		delete outerPageTable;
-		#else
+		}
+		else{
 		for(int i = 0; i < numPages; i++){
 			if(pageTable[i].valid == TRUE)
 				memMap->Clear(pageTable[i].physicalPage);
 		}
-		#endif			
+		}
 		delete pageTable;
-		memMap->Print();
+		//memMap->Print();
 	}
 
 	//printf("Filename is %s\n\n\n", fileName);
@@ -326,17 +330,18 @@ void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
 	if (swapFile == NULL){
 		printf("///////////////////////////////////////////////////////////NULL\n");
 	}
-	printf("%s is trying to be accessed\n", fileName);
+	//printf("%s is trying to be accessed\n", fileName);
 	if(!swapFile){ 
 		delete swapFile;
 		return;
 	}
-	#ifdef HPT
-		int outerIndex = pageTable[VAddr/OPTSize].physicalPage;
+	int outerIndex;
+	if(HPT == true){
+		outerIndex = pageTable[VAddr/OPTSize].physicalPage;
 		outerPageTable[outerIndex][VAddr%OPTSize].valid = TRUE;
-	#else
+	}else{
 		pageTable[VAddr].valid = TRUE;
-	#endif
+	}
 	
 	
 	//pageTable[VAddr].valid = TRUE;
@@ -352,17 +357,17 @@ void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
 	if (replaced){
 		Thread* threadToSwap = IPT[PAddr].threadptr;
 		int replacing = IPT[PAddr].vPage;	
-		printf("Replacing is %d\n", replacing);
-		#ifdef HPT
+		//printf("Replacing is %d\n", replacing);
+		if(HPT == true){
 			int outerIndex_replacing = threadToSwap->space->pageTable[replacing/threadToSwap->space->OPTSize].physicalPage;
 	  		threadToSwap->space->outerPageTable[outerIndex_replacing][replacing%threadToSwap->space->OPTSize].valid = FALSE;
-		#else
+		}else{
 			threadToSwap->space->pageTable[replacing].valid = FALSE;
-		#endif
-		printf("OPENING SWAPFILE: %s\n", threadToSwap->space->fileName);
+		}
+		//printf("OPENING SWAPFILE: %s\n", threadToSwap->space->fileName);
 		OpenFile * swapping = fileSystem->Open(threadToSwap->space->fileName);
 		swapping->WriteAt(&(machine->mainMemory[PAddr * PageSize]), PageSize, threadToSwap->space->noffH.code.inFileAddr + replacing * PageSize);
-		printf("Location is %d\n",threadToSwap->space->noffH.code.inFileAddr + replacing * PageSize);
+		//printf("Location is %d\n",threadToSwap->space->noffH.code.inFileAddr + replacing * PageSize);
 		delete swapping;
 	//Begin code changes by Hunter Kliebert
 		if (pageFlag == TRUE)															 
@@ -380,14 +385,14 @@ void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
 	memset(machine->mainMemory + PAddr * PageSize, 0, PageSize);
 
 
-	#ifdef HPT
+	if(HPT == true){
 		outerPageTable[outerIndex][VAddr%OPTSize].physicalPage = PAddr;
-	#else
+	}else{
 		pageTable[VAddr].physicalPage = PAddr;
-	#endif
+	}
 	IPT[PAddr].threadptr = currentThread;
 	IPT[PAddr].vPage = VAddr;
-	printf("IPT[%d].vPage is %d\n", PAddr, IPT[PAddr].vPage);
+	//printf("IPT[%d].vPage is %d\n", PAddr, IPT[PAddr].vPage);
 	
     if (noffH.code.size > 0 && VAddr * PageSize >= 0 
 	&& noffH.code.size + noffH.initData.size > VAddr * PageSize) {													

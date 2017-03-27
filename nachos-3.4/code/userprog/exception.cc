@@ -359,7 +359,7 @@ ExceptionHandler(ExceptionType which)
 				frameList.Append(&(frameNumbers[placement]));
 			}
 
-			memMap->Print();
+			//memMap->Print();
 
 			currentThread->space->InitPages(badAddr, placement, replaced);
 			break;

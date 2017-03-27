@@ -38,6 +38,8 @@
 // simulated machine's format of little endian.  These end up
 // being NOPs when the host machine is also little endian (DEC and Intel).
 
+extern bool HPT;
+
 unsigned int
 WordToHost(unsigned int word) {
 #ifdef HOST_IS_BIG_ENDIAN
@@ -211,17 +213,15 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     offset = (unsigned) virtAddr % PageSize;
 
 	//CODE CHANGE BY THOMAS WRAY/HAYDEN PRESLEY
-	#ifdef HPT
-		int outerIndex, OPTSize;
+	bool pfe;
+	int outerIndex, OPTSize;
+	if(HPT == true){		
 		OPTSize = currentThread->space->OPTSize;
 		outerIndex = pageTable[vpn/OPTSize].physicalPage;
-	#endif
-	bool pfe;
-    #ifdef HPT
-	pfe = currentThread->space->outerPageTable[outerIndex][vpn%OPTSize].valid;
-	#else
+		pfe = currentThread->space->outerPageTable[outerIndex][vpn%OPTSize].valid;
+	}else{
 	pfe = pageTable[vpn].valid;
-	#endif
+	}
 
     if (tlb == NULL) {		// => page table => vpn is index into table
 	if (vpn >= pageTableSize) {
@@ -235,11 +235,11 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 
 	}
 	//BEGIN CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEY
-	#ifdef HPT
+	if(HPT == true){
 	entry = &currentThread->space->outerPageTable[outerIndex][vpn%OPTSize];
-	#else
+	}else{
 	entry = &pageTable[vpn];
-	#endif
+	}
 	//END CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEY
     } else {
         for (entry = NULL, i = 0; i < TLBSize; i++)

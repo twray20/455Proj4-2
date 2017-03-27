@@ -21,6 +21,7 @@ Timer *timer;				// the hardware timer device,
 int threadChoice;
 int memChoice;
 bool pageFlag;
+bool HPT;
 
 //Begin code changes by Hunter Kliebert
 int v_choice = 0;
@@ -100,6 +101,7 @@ Initialize(int argc, char **argv)
 #ifdef USER_PROGRAM
     bool debugUserProg = FALSE;	// single step user program
 	pageFlag = false;
+	HPT = false;
 #endif
 #ifdef FILESYS_NEEDED
     bool format = FALSE;	// format disk
@@ -140,7 +142,7 @@ Initialize(int argc, char **argv)
 //Begin code changes by Thomas Wray
 	else if (!strcmp(*argv, "-H")) {
 		printf("---------USING 2 LEVEL HIERARCHICAL PAGE TABLE---------\n");
-		#define HPT	0
+		#define HPT
 	}
 //End code changes by Thomas Wray
 //Begin code changes by Hunter Kliebert
