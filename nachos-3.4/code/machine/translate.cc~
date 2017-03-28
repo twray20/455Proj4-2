@@ -216,11 +216,11 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 	bool pfe;
 	int outerIndex, OPTSize;
 	if(HPT == true){
-		currentThread->spaceSem->P();		
+		interrupt->SetLevel(IntOn); //INTERRUPTS OFF
 		OPTSize = currentThread->space->OPTSize;
 		outerIndex = pageTable[vpn/OPTSize].physicalPage;
 		pfe = currentThread->space->outerPageTable[outerIndex][vpn%OPTSize].valid;
-		currentThread->spaceSem->V();
+		interrupt->SetLevel(IntOff); //INTERRUPTS ON
 	}else{
 	pfe = pageTable[vpn].valid;
 	}
@@ -238,9 +238,7 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 	}
 
 	if(HPT == true){
-	currentThread->spaceSem->P();
 	entry = &currentThread->space->outerPageTable[outerIndex][vpn%OPTSize];
-	currentThread->spaceSem->V();
 	}else{
 	entry = &pageTable[vpn];
 	}

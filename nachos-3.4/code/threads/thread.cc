@@ -40,8 +40,6 @@ Thread::Thread(char* threadName)
     status = JUST_CREATED;
 #ifdef USER_PROGRAM
     space = NULL;
-	//spaceSem = new Semaphore("address space", 1);
-	//swapSem = new Semaphore("swap file", 1);
 	parent = NULL;
 	ID = 0;
 	killNewChild = false;

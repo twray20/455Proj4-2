@@ -108,11 +108,6 @@ class Thread {
 	void setID(int ID);	// Set a new ID.
 	bool isJoined;	// Used to determine if we've already joined to a child process.
 
-//Begin code changes by Hunter Kliebert, Hayden Presley, and Paul Smith
-	//Semaphore* spaceSem;
-	//Semaphore* swapSem;
-//End code changes by Hunter Kliebert, Hayden Presley, and Paul Smith
-
   private:
     // some of the private data for this class is listed above
     

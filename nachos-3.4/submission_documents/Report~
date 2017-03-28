@@ -3,5 +3,5 @@ IPTEntry* IPT
 int threadID;
 BitMap * memMap;
 main memory (system)
-Space
-Swap file
+Space (Interrupts?)
+Swap file (Interrupts?)

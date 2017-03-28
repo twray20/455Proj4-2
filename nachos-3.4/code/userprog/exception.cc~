@@ -28,7 +28,7 @@
 #include "syscall.h"
 #include "addrspace.h"   // FA98
 #include "sysdep.h"   // FA98
-#include "synch.h"
+#include "stats.h"
 
 // begin FA98
 
@@ -334,17 +334,22 @@ ExceptionHandler(ExceptionType which)
 
 	//Begin code changes by Thomas Wray and Hayden Presley
 	case PageFaultException :
-		{			
+		{
+			Statistics->numPageFaults += 1;			
 			//printf("Page table size is %d\n", machine->pageTableSize);
 			//printf("ERROR: PageFaultException, called by thread %i.\n",currentThread->getID());
 			int badAddr = machine->ReadRegister(BadVAddrReg) / PageSize;
+
 			int placement = memMap->Find();
 			
 			bool replaced = false;
 			if (placement == -1){
 				if (v_choice == 1){
+					IntStatus oldLevel = interrupt->SetLevel(IntOff);
 					placement = *((int*)frameList.Remove());
 					replaced = true;
+					interrupt->SetLevel(oldLevel);
+
 				}
 				else if (v_choice == 2){
 					placement = random() % (NumPhysPages - 1);
@@ -357,13 +362,15 @@ ExceptionHandler(ExceptionType which)
 			}
 
 			if (v_choice == 1){
+				IntStatus oldLevel = interrupt->SetLevel(IntOff);
 				frameList.Append(&(frameNumbers[placement]));
+				interrupt->SetLevel(oldLevel);
 			}
-
-			//memMap->Print();
-			currentThread->spaceSem->P();
+			
+			IntStatus oldLevel = interrupt->SetLevel(IntOff);
 			currentThread->space->InitPages(badAddr, placement, replaced);
-			currentThread->spaceSem->V();
+			interrupt->SetLevel(oldLevel);
+
 			break;
 		}
 	//End code changes by Thomas Wray and Hayden Presley

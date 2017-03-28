@@ -1,7 +1,62 @@
-List frameList
-IPTEntry* IPT
-int threadID;
-BitMap * memMap;
-main memory (system)
-Space (Interrupts?)
-Swap file (Interrupts?)
+NachOS Project Stage 4 Report - Hunter Kliebert (hjk7013), Hayden Presley (hdp8049), Paul Smith (pas4981), Thomas Wray (tcw9331)
+
+USE -H FOR HIERARCHICAL PAGE TABLE. NO ARGUMENT WILL DEFAULT TO SINGLE PAGLE TABLE.
+
+Task 2: Demand Paging
+1. The original addrspace set the physical page of the process immediately and set the valid bit to true, as well as loading the memory in right then. We now set the valid bit to false, so that a page fault is thrown. After a page fault is thrown, the physical page is set to where the page fault was thrown, and that page is loaded into the memory. For similarities, the virtual page is still initialized to the index of the page table.
+
+2. If a page fault occurred, we would first locate where the page fault occurred. Then, we found an empty spot in memory for it to be placed. After that, a function in address space called initPages would run. This function would zero out the memory at that location, set the physical page of the invalid spot, the valid bit to true, and load that page into the main memory.
+
+
+Task 3: Swap Files
+1. We made a swapfile with a name that was the same as the Thread’s ID and size that corresponded to the address space. We copied the data from the executable to the swapfile, making sure that was the only time we ever used the executable. Afterwards, we would close the executable and exclusively use that thread’s swapfile for any future data allocation and storage.
+
+2. Even though we didn’t create any new classes or data structures, we modified noffH to give more access to it across the operating system.
+
+
+Task 4: Virtual Memory
+1. The inverted page table consists of an array of 32 structs (1 per physical page) of type IPTEntry.  Each IPTEntry contains two fields--a thread pointer (threadptr) which holds a pointer for the thread using the physical page, and an int (vPage) which holds the virtual page to which the physical page was assigned.  To locate a physical page, the IPT is indexed with that page number. The IPT is used to discern the location of a given physical page if it is full and is selected to be swapped out, as well as which thread is accessing this page. When this must occur, Nachos will obtain the threadPtr and vPage fields, and, using the information in the thread pointed to by threadPtr, it opens that thread's swap file. The physical page in question is saved into this thread's swap file, using the vPage field as the location to which the information should be saved.
+
+Program	-rs seed	Replacement	Page Faults	Timer Ticks
+Sort	34		FIFO		20		21592962
+Sort	F89b		FIFO		20		21591482
+Sort	34		Random		20		21592651
+Sort	F89b		Random		20		21591292
+Matmult	34		FIFO		24		702811
+Matmult	F89b		FIFO		24		701797
+Matmult	34		Random		24		702561
+Matmult	F89b		Random		24		701516
+Halt	34		FIFO		3		159
+Halt	F89b		FIFO		3		184
+Halt	34		Random		3		159
+halt	F89b		Random		3		184
+
+Looking at this data, it’s apparent the Random algorithm is faster by a few hundred ticks for larger programs because it doesn’t have to operate on the frameList compared to the FIFO algorithm. Transferring this data to a more general case, it’s likely on a larger scale that the time taken to use the frameList would cause the FIFO algorithm to be considerably slower than the Random algorithm, but this would only be after an incredible amount of page replacement.
+
+
+Task 5: Two-Level Hierarchical Page Table
+1. To create a 2-level page table scheme, we used an inner page table with 4 entries and an array of 4 outer page tables, one for each inner page table. Most fields given in the inner page table translation entries are not used in this implementation, but to simulate the 2-level structure, the physical page field is assigned a number equal to the index of the translation entry (i.e. page 0 has physical page 0 assigned to it, page 1 has 1, etc.). The size of each outer page table is determined using the numPages variable in the AddrSpace constructor. The idea is to guarantee that enough virtual pages are available without creating an arbitrarily large page table which might consume needed memory. To do this, integer division is performed and NumPages is divided by 4, and this value is added to the modulus of numPages and 4; this value is used to determine the number of pages to allocate in each outer table. The restoreState function takes the inner page table and gives it to the machine, and the translate algorithm is used to determine the correct location of each virtual page. To do this, it must first determine which outer page table holds the requested virtual page; to do this, it divides the virtual page number (using integer division) by the number of pages in the program and uses this to index into the inner page table and fetch the physical page stored at this location. As previously stated, it is this physical page field which contains the outer page table index through which to search. Once it has this, it uses the virtual page modulus the number of pages to determine the correct entry in the outer page table. It should be noted that the same calculation is also used in initPages for setting valid bits and determining physical pages to swap to and from swap files.
+
+2. In order for this scheme to work, the above calculations needed to be substituted into the code for the standard pageTable[vAddr] calculations. Other than this, no large changes were needed. The IPT, as it merely contains the 32 physical pages and their state, did not need to be changed in any way.
+
+
+Task 7: Report
+Task 2
+1. There were originally errors where the memory would never fill up because the destructor would just clear the entire bitmap. We fixed this by only clearing the spots on the bitmap that were used by the exiting process so that memory was used and allocated properly. Also, we had a hard time figuring out the displacement to write to the main memory for the ReadAt function parameters. We eventually (after a few hours of calculations and wrong attempts) found out a proper way to write to main memory that the program would be read correctly.
+
+2. An array of translation entry objects for a page table. Openfiles to write to memory.
+
+Task 3
+1. For a while, we were using the incorrect filesystem, which led us to believe that we had more accessibility at the time. We initially did not include the header in the swapfile but later changed our implementation to include this. Lots of time was spent trying to calculate specific page location via offsets, page sizes, etc. 
+
+2. Speed affected our decision for implementation, such that ReadAt didn’t reference the executable and initdata but instead copied the entire executable. Efficiency affected how we wrote from the executable to a character buffer and then immediately to a swapfile to prevent further opening of the now unneeded executable. Instead of using two distinct WriteAts, we used the buffer we already created to have one WriteAt function copy that data directly to a swapfile. 
+
+Task 4
+1. For task 4, we encountered two problems: the first was a problem in which a certain program which we used for testing would go into an infinite loop. We resolved this by realizing that the incorrect location was given in swap files when saving information. We then encountered another problem in which Nachos asserted out due to its claiming that a page table did not exist. We solved this problem by modifying the exec exception so that processes could be run even if there was currently not enough physical memory free to hold the entire program.
+
+2. The two specific data structures which were used to complete task 4 were a list of the currently allocated physical page numbers (in order of their allocation) as well as an inverted page table to store any needed information about assigned physical pages. Speed and efficiency did affect our choice to use a list; it was by far the simplest way to ascertain, when computing for FIFO, the first-used physical page.
+
+Task 5
+1. Surprisingly, very few issues here. The only large problem we ran into was modifying translate.cc to make sure it translated from a 2-dimensional page table instead of a single level page table. We fixed this by modifying the "entry=" line and where a page fault was thrown.
+
+2. A 2-dimensional array of translation entries

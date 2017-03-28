@@ -9,6 +9,9 @@
 					 * object code file 
 					 */
 
+#ifndef NOFF_H
+#define NOFF_H
+
 typedef struct segment {
   int virtualAddr;		/* location of segment in virt addr space */
   int inFileAddr;		/* location of segment in this file */
@@ -23,3 +26,6 @@ typedef struct noffHeader {
 				 * should be zero'ed before use 
 				 */
 } NoffHeader;
+
+
+#endif

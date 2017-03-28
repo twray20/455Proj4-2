@@ -71,8 +71,6 @@ AddrSpace::AddrSpace(OpenFile *executable)
     unsigned int i, counter;
 	space = false;
 	
-	
-
     executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
     if ((noffH.noffMagic != NOFFMAGIC) && 
 		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
@@ -124,9 +122,9 @@ AddrSpace::AddrSpace(OpenFile *executable)
     DEBUG('a', "Initializing address space, numPages=%d, size=%d\n", 
 					numPages, size);
 // first, set up the translation 
-	//BEGIN CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEY
+	
+//BEGIN CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEY
 	if(HPT == true){
-	//printf("//////////////////////////////////////////////////////////////////////////\n");
 	OPTSize = (numPages / 4) + (numPages%4);	
 	outerPageTable = new TranslationEntry*[4];
 	for (i = 0; i < 4; i++){
@@ -182,8 +180,8 @@ AddrSpace::AddrSpace(OpenFile *executable)
 		//to indicate that the memory is in use
 		//memMap->Mark(i + startPage);
 	}
-	}
-	//END CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEY
+	}	
+//END CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEY
 	
 	//memMap->Print();	// Useful!
     
@@ -203,7 +201,8 @@ AddrSpace::AddrSpace(OpenFile *executable)
 	  //Fix this by adding startPage times page size as an offset
 	//exec = executable;	
 
-//Code changes by Thomas Wray and Paul Smith
+//Code changes by Team \n
+	IntStatus oldLevel = interrupt->SetLevel(IntOff);
 	fileName = new char[10];
 	sprintf(fileName, "%d.swap", threadID);			//come back to this later for thread 0
 	printf("%s is being made\n", fileName);
@@ -214,8 +213,9 @@ AddrSpace::AddrSpace(OpenFile *executable)
 	swapFile->Write(buffer, size);
 	delete swapFile;
 	delete buffer;
+	interrupt->SetLevel(oldLevel);
+//Code changes by Team \n
 
-//Code changes by Thomas wray and Paul smith
 }
 
 //----------------------------------------------------------------------
@@ -235,21 +235,21 @@ AddrSpace::~AddrSpace()
 		/*for(int i = startPage; i < numPages + startPage; i++)	// We need an offset of startPage + numPages for clearing.
 			memMap->Clear(i);*/
 		if(HPT == true){
-		for(int i = 0; i < 4; i++){
-			for(int j = 0; j < OPTSize; j++)
-				if(outerPageTable[i][j].valid == TRUE)
-					(memMap->Clear(outerPageTable[i][j].physicalPage));
-		}
-		for(int i = 0; i < 4; i++){	
-			delete outerPageTable[i];
-		}
-		delete outerPageTable;
+			for(int i = 0; i < 4; i++){
+				for(int j = 0; j < OPTSize; j++)
+					if(outerPageTable[i][j].valid == TRUE)
+						memMap->Clear(outerPageTable[i][j].physicalPage);
+			}
+			for(int i = 0; i < 4; i++){	
+				delete outerPageTable[i];
+			}
+			delete outerPageTable;
 		}
 		else{
-		for(int i = 0; i < numPages; i++){
-			if(pageTable[i].valid == TRUE)
-				memMap->Clear(pageTable[i].physicalPage);
-		}
+			for(int i = 0; i < numPages; i++){
+				if(pageTable[i].valid == TRUE)
+					memMap->Clear(pageTable[i].physicalPage);
+			}
 		}
 		delete pageTable;
 		//memMap->Print();
@@ -323,14 +323,10 @@ void AddrSpace::RestoreState()
 
 
 
-//begin code changes by Team \n
+//Begin code changes by Team \n
 void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
-	
+
 	OpenFile * swapFile = fileSystem->Open(fileName);
-	if (swapFile == NULL){
-		printf("///////////////////////////////////////////////////////////NULL\n");
-	}
-	//printf("%s is trying to be accessed\n", fileName);
 	if(!swapFile){ 
 		delete swapFile;
 		return;
@@ -357,36 +353,28 @@ void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
 	if (replaced){
 		Thread* threadToSwap = IPT[PAddr].threadptr;
 		int replacing = IPT[PAddr].vPage;	
-		//printf("Replacing is %d\n", replacing);
+
 		if(HPT == true){
-			threadToSwap->spaceSem->P();
 			int outerIndex_replacing = threadToSwap->space->pageTable[replacing/threadToSwap->space->OPTSize].physicalPage;
 	  		threadToSwap->space->outerPageTable[outerIndex_replacing][replacing%threadToSwap->space->OPTSize].valid = FALSE;
-			threadToSwap->spaceSem->V();
-		}else{
-			threadToSwap->spaceSem->P();
+		}
+		else{
 			threadToSwap->space->pageTable[replacing].valid = FALSE;
-			threadToSwap->spaceSem->V();
 		}
 
-		threadToSwap->spaceSem->P();
-		threadToSwap->swapSem->P();
 		OpenFile * swapping = fileSystem->Open(threadToSwap->space->fileName);
 		swapping->WriteAt(&(machine->mainMemory[PAddr * PageSize]), PageSize, threadToSwap->space->noffH.code.inFileAddr + replacing * PageSize);
 
 		delete swapping;
-		threadToSwap->swapSem->V();
-		threadToSwap->spaceSem->V();
-	//Begin code changes by Hunter Kliebert
-		if (pageFlag == TRUE)
-			printf("\nPAGE FAULT: PROCESS %i REQUESTED VIRTUAL PAGE %i\nSWAP OUT PHYSICAL PAGE %i FROM PROCESS %i\nVIRTUAL PAGE %i REMOV//END CODE CHANGES BY THOMAS WRAY AND HAYDEN PRESLEYED\n\n", currentThread->getID(), VAddr, PAddr, threadToSwap->getID(), replacing);
-	//End code changes by Hunter Kliebert
-	}
 
 	//Begin code changes by Hunter Kliebert
-	else
-		if (pageFlag == TRUE)															 
+		if (pageFlag == TRUE)
+			printf("\nPAGE FAULT: PROCESS %i REQUESTED VIRTUAL PAGE %i\nSWAP OUT PHYSICAL PAGE %i FROM PROCESS %i\nVIRTUAL PAGE %i REMOVED\n\n", currentThread->getID(), VAddr, PAddr, threadToSwap->getID(), replacing);
+	}
+	else{
+		if (pageFlag == TRUE)
 			printf("\nPAGE FAULT: PROCESS %i REQUESTED VIRTUAL PAGE %i\nASSIGNED PHYSICAL PAGE %i\n\n", currentThread->getID(), VAddr, PAddr);
+	}
 	//End code changes by Hunter Kliebert
 
 	memset(machine->mainMemory + PAddr * PageSize, 0, PageSize);
@@ -399,16 +387,13 @@ void AddrSpace::InitPages(int VAddr, int PAddr, bool replaced){
 	}
 	IPT[PAddr].threadptr = currentThread;
 	IPT[PAddr].vPage = VAddr;
-	//printf("IPT[%d].vPage is %d\n", PAddr, IPT[PAddr].vPage);
 	
-    if (noffH.code.size > 0 && VAddr * PageSize >= 0 
-	&& noffH.code.size + noffH.initData.size > VAddr * PageSize) {													
-        swapFile->ReadAt(&(machine->mainMemory[PAddr * PageSize]),
-			PageSize, noffH.code.inFileAddr + VAddr * PageSize);
+    if (noffH.code.size > 0 && VAddr * PageSize >= 0 && noffH.code.size + noffH.initData.size > VAddr * PageSize){	
+
+	swapFile->ReadAt(&(machine->mainMemory[PAddr * PageSize]), PageSize, noffH.code.inFileAddr + VAddr * PageSize);
+
     }
-	
-	//printf("Init pages: address is %d and %d\n", VAddr, PAddr);
 
 	delete swapFile;
 }
-//end code changes by Team \n
+//End code changes by Team \n
